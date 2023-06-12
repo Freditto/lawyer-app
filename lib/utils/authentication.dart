@@ -35,6 +35,7 @@ class AuthenticationHelper {
         "phone": "+255" + phone,
         "role": role,
         "photo": "",
+        "document":"",
         "category": category,
         "about": "",
         "photo": "",
