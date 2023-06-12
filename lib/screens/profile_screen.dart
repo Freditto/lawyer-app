@@ -28,10 +28,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   final db = FirebaseFirestore.instance;
   File? _photo;
+  File?_doc;
   // this variable used to store the future _fetchData function inorder to avoid loop on a future builder
   // late final Future? _fetchDataFuture;
   //image url variable
   String profileImageUrl = '';
+  String cvUrl='';
 
   firebase_storage.FirebaseStorage storage =
       firebase_storage.FirebaseStorage.instance;
@@ -78,7 +80,30 @@ class _ProfileScreenState extends State<ProfileScreen> {
       print('error occured while uploading image ' + e.toString());
     }
   }
+ Future uploadDoc() async {
+    if (_doc == null) return;
+    final fileName = basename(_doc!.path);
+    final destination = '/';
+    var temp = _doc!.path.split(".");
+    var extension = temp[temp.length - 1];
+    try {
+      final ref = firebase_storage.FirebaseStorage.instance
+          .ref(destination)
+          .child(name + "." + extension);
+      var uploadTask = ref.putFile(_doc!);
 
+      await uploadTask.whenComplete(() {
+        ref.getDownloadURL().then((value) {
+          db.collection("users").doc(name).update({'document': value});
+          setState(() {
+            cvUrl = value;
+          });
+        });
+      });
+    } catch (e) {
+      print('error occured while uploading document' + e.toString());
+    }
+  }
   Future imgFromGallery() async {
     final pickedFile = await _picker.pickImage(source: ImageSource.gallery);
 
@@ -167,6 +192,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                                 BorderRadius.circular(60))),
                               ),
                               SizedBox(width: 20),
+                               
                               Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
